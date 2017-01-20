@@ -1,5 +1,6 @@
 * parameter sweep
 * code obtained from ngspice sourceforge forum user marcel hendrix
+* extra comment
 
 * this works when this is the CURRENT ...thing
 * have to restart ngspice
