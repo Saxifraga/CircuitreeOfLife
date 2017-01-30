@@ -1,0 +1,11 @@
+* another example circuit
+* this one's a high pass filter
+
+Vsource vin AC sin(0 1m 10k 0 0)
+C1 vin vout .23u
+R1 vout 0 1k
+
+.control
+tran .5s 1s
+.endc
+.end
