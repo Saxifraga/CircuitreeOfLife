@@ -14,11 +14,14 @@ def write_netlist(rval):
     #rval will be varied
     # deletes all the old stuff out of highpass.cir every time
     with open("highpass.cir", "w") as fo:
-        fo.write('Vsource vin 0 sin(0 10 10k 0 0)')
+        fo.write('Vsource vin 0 DC 6')
         fo.write('\nC1 vin vout .23u')
         fo.write('\nR1 vout 0 {}'.format(rval))
+        fo.write('\n.tran .5s 1s UIC')
         fo.write('\n.control')
-        fo.write('\ntran .5s 1s UIC')
+        fo.write('\nsave all')
+        fo.write('\nrun')
+        fo.write('\nwrite')
         fo.write('\n.endc')
         fo.write('\n.end')
     return
@@ -28,27 +31,34 @@ def iterate(spicepath):
         rval = 1000*(i+1)
         write_netlist(rval) #this definitely should write a new highpass.cir
         p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "highpass.cir"])
+        p.communicate()
         [arrs, plots] = rr.rawread('hpf.raw')   #arrs is the voltages'n'currents
-        print arrs.shape()
+        # arrs is a list of characters. Unfortunately, this cannot be parsed
+        # I need to write a goddamned function to parse out this dumb list
+        #real_arrs = arrsparser(arrs)
+        arrs = arrs[0]
+        print arrs
     return
 
 if __name__ == '__main__':
-    #iterate(spicepath)
-    p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "highpass.cir"])
-    p.communicate()
-    [arrs, plots] = rr.rawread('hpf.raw')   #arrs is the voltages'n'currents
-    
+    iterate(spicepath)
+
 
 
 ''' standard netlist for a HPF:
 * another example circuit
 * this one's a high pass filter
 
-Vsource vin AC sin(0 1m 10k 0 0)
+Vsource vin 0 DC 6
+*need to figure out ac sources :/
 C1 vin vout .23u
-R1 vout 0 1k
+R1 vout 0 1000
+.tran .5s 1s UIC
 
 .control
-tran .5s 1s
+save all
+run
+write
 .endc
-.end     '''
+
+.end    '''
