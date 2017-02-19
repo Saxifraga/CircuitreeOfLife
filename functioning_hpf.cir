@@ -1,0 +1,19 @@
+* practice high pass
+* this one works
+
+
+.tran 10n 1u
+
+.control
+save all
+run
+write
+.endc
+
+
+
+V1 in 0 sin(0 1 1e6)
+R1 in out 50k
+C1 out 0 10p
+
+.END
