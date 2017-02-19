@@ -16,18 +16,18 @@ def write_netlist(rval):
     #rval will be varied
     # deletes all the old stuff out of highpass.cir every time
     with open("highpass.cir", "w") as fo:
-        fo.write('Vsource vin 0 DC 6')
-        fo.write('\nC1 vin vout .23u')
-        fo.write('\nR1 vout 0 {}'.format(rval))
-        fo.write('\n.tran .5s 4s UIC')
-        fo.write('\n')
-        fo.write('\n.control')
-        fo.write('\nsave all')
-        fo.write('\nrun')
-        fo.write('\nwrite')
-        fo.write('\n.endc')
-        fo.write('\n')
-        fo.write('\n.end')
+        #always put in the control loop
+        fo.write('.tran 10n 1u\n')
+        fo.write('.control\n')
+        fo.write('save all\n')
+        fo.write('run\n')
+        fo.write('write\n')
+        fo.write('.endc\n')
+        for line in netlist:
+            #TODO make sure I've converted netlist to strings
+            fo.write(line)
+            fo.write('\n')
+        fo.write('.END')
     return
 
 def iterate(spicepath):
@@ -47,15 +47,21 @@ def iterate(spicepath):
             for term in line:
                 this_row.append(float(term))
             array = np.vstack((array, this_row))
+        return array
 
-
-    return array
+def evaluate_solution(array, function, k):
+    # k is the column in which the correct simulation voltage is kept
+    time = array[:,0]   # first column of data is always time
+    data = array[:,k]
+    func = function(time)
+    fitness_val = sum((func-data)**2)
+    return fitness_val
 
 if __name__ == '__main__':
     array = iterate(spicepath)
-    plt.plot(array[:,0], array[:,1])
+    time = array[:,0]
+    plt.plot(time, array[:,1])
     plt.show()
-
 
 
 
@@ -63,11 +69,8 @@ if __name__ == '__main__':
 * another example circuit
 * this one's a high pass filter
 
-Vsource vin 0 DC 6
-*need to figure out ac sources :/
-C1 vin vout .23u
-R1 vout 0 1000
-.tran .5s 1s UIC
+
+.tran 10n 1u
 
 .control
 save all
@@ -75,4 +78,11 @@ run
 write
 .endc
 
-.end    '''
+
+
+V1 in 0 sin(0 1 1e6)
+R1 in out 50k
+C1 out 0 10p
+
+.END
+'''
