@@ -1,5 +1,3 @@
-
-# path: in root--- Applications/ngspice/bin/ngspice
 import subprocess as sp
 import raw_reader as rr
 import numpy as np
@@ -8,11 +6,8 @@ import matplotlib.pyplot as plt
 spicepath = r'/Applications/ngspice/bin/ngspice'
 filepath = r'/Desktop/CircuitreeOfLife/highpass.cir'
 
-'''I need to rewrite the netlist in highpass.cir, save it, simulate it, read the rawfile with raw_reader.py,
-get the resulting vout/vin ratio, compare the ratio to my desired ratio, and rewrite
-the netlist accordingly'''
 
-def write_netlist(rval):
+def write_netlist(netlist):
     #rval will be varied
     # deletes all the old stuff out of highpass.cir every time
     with open("highpass.cir", "w") as fo:
@@ -25,10 +20,16 @@ def write_netlist(rval):
         fo.write('.endc\n')
         for line in netlist:
             #TODO make sure I've converted netlist to strings
+            # line = str(line) #(???)
             fo.write(line)
             fo.write('\n')
         fo.write('.END')
     return
+
+def build_hpf():
+    hpf = Circuit()
+    node = hpf.add_component_series('R1', 1, '50k')
+    hpf.add_component_parallel('C1', node, '10p')
 
 def iterate(spicepath):
     for i in range(1):
@@ -48,6 +49,15 @@ def iterate(spicepath):
                 this_row.append(float(term))
             array = np.vstack((array, this_row))
         return array
+
+''' the function evaluate_solution is meant to assess the fitness
+of a particular circuit simulation via its output.  The function takes
+three arguments. "array" contains the simulation result data. Its first column
+is time; its other columns are voltage and current data. "function" represents
+the fitness function: the function that the system output should emulate. Finally,
+"k" is the number of the column in which the output voltage data is stored.
+evaluate_solution returns the sum-squared error between the data and the fitness
+function as the fitness value. Obviously, lower fitness values are preferred.'''
 
 def evaluate_solution(array, function, k):
     # k is the column in which the correct simulation voltage is kept
