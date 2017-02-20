@@ -2,6 +2,7 @@ import subprocess as sp
 import raw_reader as rr
 import numpy as np
 import matplotlib.pyplot as plt
+import circuit_class_prototype as cir
 
 spicepath = r'/Applications/ngspice/bin/ngspice'
 filepath = r'/Desktop/CircuitreeOfLife/highpass.cir'
@@ -18,6 +19,8 @@ def write_netlist(netlist):
         fo.write('run\n')
         fo.write('write\n')
         fo.write('.endc\n')
+        #netlist = netlist.split(',')
+        print netlist
         for line in netlist:
             #TODO make sure I've converted netlist to strings
             # line = str(line) #(???)
@@ -26,17 +29,11 @@ def write_netlist(netlist):
         fo.write('.END')
     return
 
-def build_hpf():
-    hpf = Circuit()
-    node = hpf.add_component_series('R1', 1, '50k')
-    hpf.add_component_parallel('C1', node, '10p')
-
-def iterate(spicepath):
+def iterate(spicepath, netlist):
     for i in range(1):
-        rval = 1000
-        write_netlist(rval) #this definitely should write a new highpass.cir
+        write_netlist(netlist) #this definitely should write a new highpass.cir
         #p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "hp1.cir"])
-        p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "functioning_hpf.cir"])
+        p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "highpass.cir"])
         p.communicate()
         [arrs, plots] = rr.rawread('hpf.raw')   #arrs is the voltages'n'currents
 
@@ -67,12 +64,23 @@ def evaluate_solution(array, function, k):
     fitness_val = sum((func-data)**2)
     return fitness_val
 
-if __name__ == '__main__':
-    array = iterate(spicepath)
-    time = array[:,0]
-    plt.plot(time, array[:,1])
-    plt.show()
+def build_hpf():
+    hpf = cir.Circuit()
+    node = hpf.add_component_series('R1', '1', '50k')
+    hpf.add_component_parallel('C1', node, '10p')
+    hpf = str(hpf)
+    hpf = hpf.split(',')
+    hpf = np.asarray(hpf)
+    return hpf
 
+if __name__ == '__main__':
+    # array = iterate(spicepath)
+    # time = array[:,0]
+    # plt.plot(time, array[:,1])
+    # plt.show()
+    netlist = build_hpf()
+    iterate(spicepath, netlist)
+    #netlist = np.asarray(build_hpf())
 
 
 ''' standard netlist for a HPF:
