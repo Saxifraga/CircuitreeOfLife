@@ -15,7 +15,6 @@ def clean_line(line):
     return line
 
 def write_netlist(netlist):
-    #rval will be varied
     # deletes all the old stuff out of highpass.cir every time
     with open("highpass.cir", "w") as fo:
         #always put in the control loop
@@ -28,9 +27,8 @@ def write_netlist(netlist):
         fo.write('.endc\n')
         fo.write('\n')
         #netlist = netlist.split(',')
-        print netlist
+        #print netlist
         for line in netlist:
-
             line = clean_line(line)
             fo.write(line)
             fo.write('\n')
@@ -38,7 +36,6 @@ def write_netlist(netlist):
     return
 
 def iterate(spicepath, netlist):
-
     write_netlist(netlist) #this definitely should write a new highpass.cir
     #p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "hp1.cir"])
     p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "highpass.cir"])
@@ -76,18 +73,35 @@ def build_hpf():
     hpf = cir.Circuit()
     node = hpf.add_component_series('R1', '1', '50k')
     hpf.add_component_parallel('C1', node, '10p')
+    hpf.serialize('R1')
     hpf = str(hpf)
     hpf = hpf.split(',')
     hpf = np.asarray(hpf)
+
     return hpf
+
+# TODO implement crossover
+''' would like to take two high fitness circuits, identify chunks of them (subcircuits? pieces of
+distinct topology? How to identify circuit topology?), pull '''
+
+''' maybe a good idea to build circuits up of subcircuits instead of directly of components?
+I can recycle the methods of the circuit class by using them to build subcircuits. '''
+# def crossover(cir1, cir2):
+#     # a circuit object returns its netlist as strings
+#     # say I want to take the first two components of
+#     for component in cir1:
+#         component.bottomnode
+#
+#     return cir1, cir2
 
 if __name__ == '__main__':
 
     netlist = build_hpf()
-    array = iterate(spicepath, netlist)
-    time = array[:,0]
-    plt.plot(time, array[:,1])
-    plt.show()
+    print netlist
+    # array = iterate(spicepath, netlist)
+    # time = array[:,0]
+    # plt.plot(time, array[:,1])
+    # plt.show()
 
 
 ''' standard netlist for a HPF:
