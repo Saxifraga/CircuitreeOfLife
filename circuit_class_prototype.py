@@ -4,8 +4,9 @@ import component_class_prototype as comp
 class Circuit:
 
     def __init__(self):
-        self.netlist = []
+
         self.source = 'V1 1 0 sin(0 1 1e6)'
+        self.netlist = [self.source]
 
     def add_component_series(self, name, lastnodenum, value):
         new_node_num = str(int(lastnodenum) + 1)
@@ -17,8 +18,9 @@ class Circuit:
         self.netlist.append(new_obj)
         return new_node_num     # do I also need to return the netlist...?
 
-    def add_component_parallel(self, lastnodenum, name, value):
-        new_obj = comp.Component(name, lastnodenum, 0, value)
+    def add_component_parallel(self, name, lastnodenum, value):
+        new_obj = comp.Component(name, lastnodenum, '0', value)
+        print(new_obj)
         self.netlist.append(new_obj)
         return  # do I need to return the netlist?
 

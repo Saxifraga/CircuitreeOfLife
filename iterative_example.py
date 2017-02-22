@@ -7,45 +7,53 @@ import circuit_class_prototype as cir
 spicepath = r'/Applications/ngspice/bin/ngspice'
 filepath = r'/Desktop/CircuitreeOfLife/highpass.cir'
 
+def clean_line(line):
+    line = line.replace('[', '')
+    line = line.replace(']', '')
+    line = line.replace('\'', '')
+    line = line.replace('\"', '')
+    return line
 
 def write_netlist(netlist):
     #rval will be varied
     # deletes all the old stuff out of highpass.cir every time
     with open("highpass.cir", "w") as fo:
         #always put in the control loop
+        fo.write('* High pass filter\n')
         fo.write('.tran 10n 1u\n')
         fo.write('.control\n')
         fo.write('save all\n')
         fo.write('run\n')
         fo.write('write\n')
         fo.write('.endc\n')
+        fo.write('\n')
         #netlist = netlist.split(',')
         print netlist
         for line in netlist:
-            #TODO make sure I've converted netlist to strings
-            # line = str(line) #(???)
+
+            line = clean_line(line)
             fo.write(line)
             fo.write('\n')
         fo.write('.END')
     return
 
 def iterate(spicepath, netlist):
-    for i in range(1):
-        write_netlist(netlist) #this definitely should write a new highpass.cir
-        #p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "hp1.cir"])
-        p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "highpass.cir"])
-        p.communicate()
-        [arrs, plots] = rr.rawread('hpf.raw')   #arrs is the voltages'n'currents
 
-        arrs = arrs[0]
-        k = len(arrs[0])
-        array = np.empty((0,k))
-        for line in arrs:
-            this_row = []
-            for term in line:
-                this_row.append(float(term))
-            array = np.vstack((array, this_row))
-        return array
+    write_netlist(netlist) #this definitely should write a new highpass.cir
+    #p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "hp1.cir"])
+    p = sp.Popen(["%s" % (spicepath), "-b", "-r", "hpf.raw", "highpass.cir"])
+    p.communicate()
+    [arrs, plots] = rr.rawread('hpf.raw')   #arrs is the voltages'n'currents
+
+    arrs = arrs[0]
+    k = len(arrs[0])
+    array = np.empty((0,k))
+    for line in arrs:
+        this_row = []
+        for term in line:
+            this_row.append(float(term))
+        array = np.vstack((array, this_row))
+    return array
 
 ''' the function evaluate_solution is meant to assess the fitness
 of a particular circuit simulation via its output.  The function takes
@@ -74,13 +82,12 @@ def build_hpf():
     return hpf
 
 if __name__ == '__main__':
-    # array = iterate(spicepath)
-    # time = array[:,0]
-    # plt.plot(time, array[:,1])
-    # plt.show()
+
     netlist = build_hpf()
-    iterate(spicepath, netlist)
-    #netlist = np.asarray(build_hpf())
+    array = iterate(spicepath, netlist)
+    time = array[:,0]
+    plt.plot(time, array[:,1])
+    plt.show()
 
 
 ''' standard netlist for a HPF:
