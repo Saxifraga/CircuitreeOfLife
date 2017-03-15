@@ -52,14 +52,14 @@ class Circuit:
         new_bot = str(int(bot) + 1)
         new_comp.topnode = new_top
         new_comp.bottomnode = new_bot
-        print new_comp
-        print component
+        #print new_comp
+        #print component
         self.netlist.append(new_comp)
         return
 
     def parallelize(self, comp_name):
         for element in self.netlist:
-            print 'element', element
+            #print 'element', element
             if element.name == comp_name:
                 component = element
         new_comp = copy.deepcopy(component)
@@ -67,6 +67,29 @@ class Circuit:
         new_comp.name = self.rename(my_name)
 
         self.netlist.append(new_comp)
+        return
+
+    def half_func(self):
+        l = len(self.netlist)
+        return self.netlist[0:l/2], self.netlist[l/2:l]
+
+    def check_nums(self):
+        for i in range(len(self.netlist)):
+            templist = copy.deepcopy(self.netlist)
+            stat_element = templist.pop(i)
+            for j in range(len(templist)):
+                dynamic_element = templist[j]
+                if stat_element.name == dynamic_element.name:
+                    letter = dynamic_element.name[0]
+                    num = int(dynamic_element.name[1:len(dynamic_element.name)])
+                    rest = str(num+1)
+                    new_name = letter, rest
+                    new_name = "".join(new_name)
+                    if j < i:
+                        net_index = j
+                    else:
+                        net_index = j + 1
+                    self.netlist[net_index].name = new_name
         return
 
     def __repr__(self):
