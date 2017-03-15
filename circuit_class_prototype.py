@@ -5,10 +5,19 @@ import copy
 
 class Circuit:
 
-    def __init__(self):
+    def __init__(self, list1 = None, list2 = None):
 
         self.source = comp.Component('V1', 1, 0, 'sin(0 1 1e6)')
-        self.netlist = [self.source]
+        self.netlist = []
+        if list1 != None and list2 != None:
+            for l in list1:
+                self.netlist.append(l)
+            for l in list2:
+                self.netlist.append(l)
+        elif (list1 == None) != (list2 == None):
+            print "ERROR: empty lists cannot be added to netlists"
+        else:
+            self.netlist = [self.source]
 
     def add_component_series(self, name, lastnodenum, value):
         new_node_num = str(int(lastnodenum) + 1)

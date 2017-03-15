@@ -80,17 +80,22 @@ def test_func():
     n = format_netlist(n)
     return
 
-# def cross_funcs(a,b):
-#     [a1, a2] = a.half_func()
-#     [b1, b2] = b.half_func()
-#
+def cross_funcs(a,b):
+    [a1, a2] = a.half_func()
+    [b1, b2] = b.half_func()
+    new_a = cir.Circuit(a1,b2)
+    print 'the baby\n', new_a
+    return new_a
+
 
 r1 = build_random()
-print 'whole list', r1
-[r1a, r1b] = r1.half_func()
-print type(r1a)
 r2 = build_random()
-[r2a, r2b] = r2.half_func()
+print 'r1\n', r1, '\n'
+print 'r2\n', r2, '\n'
+
+r=cross_funcs(r1, r2)
+r.check_nums()
+print r
 
 # def build_net_2():
 #     net2 = cir.Circuit()
