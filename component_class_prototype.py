@@ -1,5 +1,6 @@
 # I want to create a class for adding components
 
+
 class Component:
 
     def __init__(self, name, topnode, bottomnode, value):

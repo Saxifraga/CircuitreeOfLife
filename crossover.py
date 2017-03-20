@@ -3,11 +3,7 @@ import circuit_class_prototype as cir
 import iterate_evaluate as ie
 import component_class_prototype as comp
 
-def format_netlist(net):
-    net = str(net)
-    net = net.split(',')
-    net = np.asarray(net)
-    return net
+
 
 def random_component(dig):
     n = np.random.randint(0,3)
@@ -43,6 +39,8 @@ def build_random():
         m = np.random.randint(0,2)
         element = r.netlist[-1]
         node = element.bottomnode
+        if node == str(0):
+            node = np.random.randint(1,3)
         if n ==0 or n==1:
             cname = random_component(i)
             if m == 0:
@@ -58,14 +56,14 @@ def build_random():
     r.check_nums()
     return r
 
+def cross_funcs(a,b):
+    [a1, a2] = a.half_func()
+    [b1, b2] = b.half_func()
+    new_a = cir.Circuit(a1,b2)
+    new_b = cir.Circuit(b1, a2)
+    #print 'the baby\n', new_a
+    return new_a, new_b
 
-def build_hpf():
-    hpf = cir.Circuit()
-    node = hpf.add_component_series('R1', '1', '50k')
-    hpf.add_component_parallel('C1', node, '10p')
-    hpf.serialize('R1')
-    hpf = format_netlist(hpf)
-    return hpf
 
 # problem: if I format the netlist first, then I can't
 
@@ -77,25 +75,25 @@ def test_func():
     n.add_component_series('R1', '4', '1k')
     # n.add_component_series('R1', '5', '1k')
     n.check_nums()
-    n = format_netlist(n)
+    n = n.format_netlist(n)
     return
 
-def cross_funcs(a,b):
-    [a1, a2] = a.half_func()
-    [b1, b2] = b.half_func()
-    new_a = cir.Circuit(a1,b2)
-    print 'the baby\n', new_a
-    return new_a
 
 
-r1 = build_random()
-r2 = build_random()
-print 'r1\n', r1, '\n'
-print 'r2\n', r2, '\n'
+# def formats_netlist(net):
+#     net = str(net)
+#     net = net.split(',')
+#     net = np.asarray(net)
+#     return net
 
-r=cross_funcs(r1, r2)
-r.check_nums()
-print r
+# r1 = build_random()
+# r2 = build_random()
+#
+#
+# r=cross_funcs(r1, r2)
+# r.check_nums()
+# print r.format_netlist(r)
+
 
 # def build_net_2():
 #     net2 = cir.Circuit()

@@ -1,21 +1,24 @@
 # I want to create a class for building up circuits component by component
 import component_class_prototype as comp
 import copy
+import numpy as np
 
 
 class Circuit:
 
     def __init__(self, list1 = None, list2 = None):
 
-        self.source = comp.Component('V1', 1, 0, 'sin(0 1 1e6)')
+
+        self.source = comp.Component('V1', 1, 0, 'ac 1')
         self.netlist = []
-        if list1 != None and list2 != None:
+        if list1 != None:
             for l in list1:
                 self.netlist.append(l)
-            for l in list2:
-                self.netlist.append(l)
-        elif (list1 == None) != (list2 == None):
-            print "ERROR: empty lists cannot be added to netlists"
+            if list2 != None:
+                for l in list2:
+                    self.netlist.append(l)
+        # elif (list1 == None) != (list2 == None):
+        #     print "ERROR: empty lists cannot be added to netlists"
         else:
             self.netlist = [self.source]
 
@@ -49,6 +52,9 @@ class Circuit:
         let = [let, dig]
         my_name = "".join(let)
         return my_name
+
+    def mutate(self):
+
 
     def serialize(self, comp_name):
         for element in self.netlist:
@@ -100,6 +106,12 @@ class Circuit:
                         net_index = j + 1
                     self.netlist[net_index].name = new_name
         return
+
+    def format_netlist(self,net):
+        net = str(net)
+        net = net.split(',')
+        net = np.asarray(net)
+        return net
 
     def __repr__(self):
         return str(self)
