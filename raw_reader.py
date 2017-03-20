@@ -6,7 +6,7 @@ BSIZE_SP = 512 # Max size of a line of data; we don't want to read the
 MDATA_LIST = [b'title', b'date', b'plotname', b'flags', b'no. variables',
               b'no. points', b'dimensions', b'command', b'option']
 
-def rawread(fname: str):
+def rawread(fname):
     """Read ngspice binary raw files. Return tuple of the data, and the
     plot metadata. The dtype of the data contains field names. This is
     not very robust yet, and only supports ngspice.
@@ -26,14 +26,20 @@ def rawread(fname: str):
     #         1       v(out)  voltage
     #         2       v(in)   voltage
     # Binary:
-    fp = open(fname, 'rb')
+
+    # if there isn't fname, I need to return something else
+    try:
+        fp = open(fname, 'rb')
+    except:
+        return (None, None)
     plot = {}
     count = 0
     arrs = []
     plots = []
     while (True):
         try:
-            mdata = fp.readline(BSIZE_SP).split(b':', maxsplit=1)
+            #mdata = fp.readline(BSIZE_SP).split(b':', maxsplit=1)
+            mdata = fp.readline(BSIZE_SP).split(b':', 1)
         except:
             raise
         if len(mdata) == 2:
@@ -57,6 +63,7 @@ def rawread(fname: str):
                                                  else np.float_]*nvars})
                 # We should have all the metadata by now
                 arrs.append(np.fromfile(fp, dtype=rowdtype, count=npoints))
+                #arrs.append(np.fromfile(fp, dtype=rowdtype, count=npoints))
                 plots.append(plot)
                 fp.readline() # Read to the end of line
         else:
@@ -65,7 +72,7 @@ def rawread(fname: str):
 
 if __name__ == '__main__':
     arrs, plots = rawread('test.raw')
-    print(darr)
+
 
 # Local Variables:
 # mode: python
