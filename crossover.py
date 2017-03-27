@@ -1,6 +1,6 @@
 import numpy as np
 import circuit_class_prototype as cir
-import iterate_evaluate as ie
+# import iterate_evaluate as ie
 import component_class_prototype as comp
 
 
@@ -61,6 +61,8 @@ def cross_funcs(a,b):
     [b1, b2] = b.half_func()
     new_a = cir.Circuit(a1,b2)
     new_b = cir.Circuit(b1, a2)
+    new_a.check_nums()
+    new_b.check_nums()
     #print 'the baby\n', new_a
     return new_a, new_b
 

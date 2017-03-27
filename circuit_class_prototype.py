@@ -54,7 +54,39 @@ class Circuit:
         return my_name
 
     def mutate(self):
-
+        for i in range(1,len(self.netlist)):
+            n = np.random.randint(0,20)
+            if n < 5:   #1 in 4 chance of numerical mutation
+                element = self.netlist[i]
+                val = element.value
+                # split 'val' into letters and digits
+                dig = []
+                let = []
+                for char in val:
+                    if char.isdigit() or char == '.':
+                        dig.append(char)
+                    else:
+                        let.append(char)
+                dig = float("".join(dig))
+                m = np.random.randint(0,2)
+                if m == 0:
+                    dig += np.random.random()
+                elif m ==1:
+                    dig = abs(dig - np.random.random())
+                dig = str(dig)
+                dig = [dig, let[0]]
+                my_val = "".join(dig)
+                element.value = my_val
+            # if this is messed up, can fix this way:
+            elif n == 11:   # 5% chance of topological mutation
+                element = self.netlist[i]
+                m = np.random.randint(0,2)
+                if m == 0:
+                    self.parallelize(element.name)
+                elif m == 1:
+                    self.serialize(element.name)
+        self.check_nums()
+        return
 
     def serialize(self, comp_name):
         for element in self.netlist:
