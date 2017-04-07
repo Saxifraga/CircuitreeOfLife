@@ -76,18 +76,20 @@ def fitness_example(freqs):
     # for i in freqs:
     #     if i < 5000:
     #         val.append(1)
-    #     if i > 5000:
+    #     if i >= 5000:
     #         val.append(0)
 
 ###########################
     # Band pass example:
     for i in freqs:
-        if i > 5000 and i < 20000:
+        if i >= 150 and i <= 600:
             val.append(1)
         else:
             val.append(0)
-
     return val
+
+''' evaluate_solution takes the simulation data (array), the fitness
+function ()'''
 
 def evaluate_solution(array, function, k):
     # k is the column in which the correct simulation voltage is kept
@@ -96,23 +98,50 @@ def evaluate_solution(array, function, k):
     func = function(freqs)
     fitness_val = 0
 
+    # for bpf above, important zones 100-200, 550-650
+
     high_freq_weight = 10
     low_freq_weight = 10
-    med_freq_weight = 10
+    med_freq_weight = 1
     for i in range(len(data)):
-        if i < len(data)/10:
-            fitness_val += low_freq_weight*(func[i]-data[i])**2
-        elif i > (9/10)*len(data):
-            fitness_val += high_freq_weight*(func[i]-data[i])**2
-        else:
-            fitness_val += med_freq_weight*(func[i]-data[i])**2
+        #
+        # if i < 100 or i>99000: #bottom hundred, top thousand
+        #     fitness_val += 25*(func[i]-data[i])**2
+        # elif i >=100 and i<=650:
+        #     fitness_val += 40*(func[i]-data[i])**2
+        # else:
+        #     fitness_val += (func[i]-data[i])**2
+
+        # Something complicated I tried for 150-600 Hz BPF (not good)
+
+        if i < 75:
+            fitness_val += (11-(10*i/75))*(func[i]-data[i])**2
+        elif i>=75 and i<170:
+            fitness_val += (10/75)*(i-75)*(func[i]-data[i])**2
+        elif i>= 170 and i<580:
+            fitness_val += 5
+        elif i>=580 and i<650:
+            fitness_val += (-10/75)*(i-580)*(func[i]-data[i])**2
+        elif i>=650 and i<99000:
+            fitness_val += (func[i]-data[i])**2
+        elif i >= 99000:
+            fitness_val += (10/750)*(i-99000)*(func[i]-data[i])**2
+
+        #Standard evaluation for HPF, LPF
+
+        # if i < len(data)/10:
+        #     fitness_val += low_freq_weight*(func[i]-data[i])**2
+        # elif i > (9/10)*len(data):
+        #     fitness_val += high_freq_weight*(func[i]-data[i])**2
+        # else:
+        #     fitness_val += med_freq_weight*(func[i]-data[i])**2
     diff = max(data) - min(data)
     fitness_val = fitness_val/(diff)
     return fitness_val
 
 def generation(gen):
     # evaluate the last set of circuits
-
+    gen_size = len(gen)
     gen_fit = []
     for i in gen:
         netlist = i.netlist
@@ -120,17 +149,39 @@ def generation(gen):
         if array == None:
             fitness = 1000
         else:
-            fitness = evaluate_solution(array, fitness_example, 2)
+            fitness = evaluate_solution(array, fitness_example, i.max_node())
         gen_fit.append(fitness)
     # choose the best to keep
     next_gen = []
+    ordered = []
     best_fit = min(gen_fit)
-    for i in range(len(gen)/4):
+    for i in range(len(gen_fit)):
         minIndex = gen_fit.index(min(gen_fit))
-        gen_fit.pop(minIndex)   #don't care about fitness score anymore
-        next_gen.append(gen.pop(minIndex))
-    #print 'length of originals', len(next_gen)
+        gen_fit.pop(minIndex)
+        ordered.append(gen.pop(minIndex))
+        #'ordered' is an ordered list of all circuits, most to least fit
+    a = (gen_size+1)*(gen_size/2)  #gauss formula
+
+    weights = {}
+    jmax = 0
+    for i in range(gen_size):
+        for j in range(gen_size-i):
+            #weights[i].append(j + jmax)
+            weights[j+jmax] = i
+        jmax += (j+1)
+    for i in range(gen_size/4):
+        k = np.random.randint(0,a)
+        index = weights.get(k)
+        next_gen.append(ordered[index])
+        #############################
+        # Method 1: choose the top n/4 circuits
+    #for i in range(len(gen)/4):
+        # minIndex = gen_fit.index(min(gen_fit))
+        # gen_fit.pop(minIndex)   #don't care about fitness score anymore
+        # next_gen.append(gen.pop(minIndex))
+        #############################
     # mate the best circuits together
+
     for i in range(len(next_gen)):
         if i%2 != 0:
             pass
@@ -160,51 +211,75 @@ def generation(gen):
 #
 #     return hpf
 
+def build_bpf():
+    bpf = cir.Circuit()
+    node = bpf.add_component_series('C1', '1', '1.06u')
+    bpf.add_component_parallel('R1', '2', '1k')
+    bpf.add_component_series('R2', '2', '1k')
+    bpf.add_component_parallel('C2', '3', '.265u')
+    return bpf
 
 ''' maybe a good idea to build circuits up of subcircuits instead of directly of components?
 I can recycle the methods of the circuit class by using them to build subcircuits. '''
 
 
 if __name__ == '__main__':
-    gen = []
-    number_of_generations = 50
-    for i in range(40):
-        gen.append(cross.build_random())
-    for i in range(number_of_generations):
-        print 'GENERATION', i
-        [gen, best_fit] = generation(gen)   #this *should* work
 
-    # best_fit = 1000
-    # num_gen = 0
-    # while best_fit > 8.0:
-    #     [gen, best_fit] = generation(gen)
-    #     num_gen +=1
-    #     print 'GENERATION', num_gen, 'fitness', best_fit
-
-    cream_of_crop = gen #the last values you get out will be best
-    gen_fit = []
-    data = []
-    for i in cream_of_crop:
-        [array, types] = iterate(spicepath, i.netlist)
-        if array == None:
-            fitness = 1000
-        else:
-            fitness = evaluate_solution(array, fitness_example, 2)
-        data.append(array)
-        gen_fit.append(fitness)
-    minIndex = gen_fit.index(min(gen_fit))
-    print 'fitness', gen_fit.pop(minIndex)   #don't care about fitness score anymore
-    mySolution = cream_of_crop.pop(minIndex)
-    myData = data.pop(minIndex)
-    freqs = myData[:,0]
+    bpf = build_bpf()
+    netlist = bpf.netlist
+    [array, types] = iterate(spicepath, netlist)
+    fitness = evaluate_solution(array, fitness_example, bpf.max_node())
+    print 'fitness', fitness
+    freqs = array[:,0]
     #TODO select node to plot in an intelligent way pls
-    plt.plot(freqs, myData[:,2], freqs, fitness_example(freqs))
+    node = int(bpf.max_node())
+    plt.plot(freqs, array[:,node], freqs, fitness_example(freqs))
     plt.xscale('log')
     plt.show()
 
-###################################
-
+    # gen = []
+    # number_of_generations = 50
+    # for i in range(40):
+    #     gen.append(cross.build_random())
+    # for i in range(number_of_generations):
+    #     print 'GENERATION', i
+    #     [gen, best_fit] = generation(gen)   #this *should* work
     #
+    # # best_fit = 1000
+    # # num_gen = 0
+    # # while best_fit > 10.0:
+    # #     [gen, best_fit] = generation(gen)
+    # #     num_gen +=1
+    # #     print 'GENERATION', num_gen, 'fitness', best_fit
+    #
+    # cream_of_crop = gen #the last values you get out will be best
+    # gen_fit = []
+    # data = []
+    # for i in cream_of_crop:
+    #     [array, types] = iterate(spicepath, i.netlist)
+    #     if array == None:
+    #         fitness = 1000
+    #     else:
+    #
+    #         fitness = evaluate_solution(array, fitness_example, i.max_node())
+    #     data.append(array)
+    #     gen_fit.append(fitness)
+    # print 'fitnesses', gen_fit
+    # minIndex = gen_fit.index(min(gen_fit))
+    # print 'fitness', gen_fit.pop(minIndex)   #don't care about fitness score anymore
+    # mySolution = cream_of_crop.pop(minIndex)
+    # print mySolution
+    # myData = data.pop(minIndex)
+    # freqs = myData[:,0]
+    # #TODO select node to plot in an intelligent way pls
+    #node = int(i.max_node())
+    # plt.plot(freqs, myData[:,node], freqs, fitness_example(freqs))
+    # plt.xscale('log')
+    # plt.show()
+
+##################################
+
+
     #
     #
     # if array != None:

@@ -56,6 +56,8 @@ class Circuit:
     def mutate(self):
         for i in range(1,len(self.netlist)):
             n = np.random.randint(0,20)
+            # UNCOMMENT THIS AGAIN!!!!!
+
             if n < 5:   #1 in 4 chance of numerical mutation
                 element = self.netlist[i]
                 val = element.value
@@ -85,7 +87,64 @@ class Circuit:
                     self.parallelize(element.name)
                 elif m == 1:
                     self.serialize(element.name)
+
+            # don't forget to reset indentation and elif!!
+
+            elif n == 12 or n == 13 or n == 14:    # 3/20 chance of type mutation
+                element = self.netlist[i]
+                component_name = element.name
+            # TODO mutate type (R L C)
+            # change name; if name before or name after is R,
+            #change prefix on value (ex: .234k --> .234 u)
+                dig = []
+                let = []
+                for char in component_name:
+                    if char.isdigit():
+                        dig.append(char)
+                    else:
+                        let.append(char)
+                dig = "".join(dig)
+                let = "".join(let) # I think this is unnecessary
+                types = ['R', 'L', 'C']
+                this_one = let
+                #print 'before', let
+                # I'm going to let it be luck of draw: R might change to R, etc
+                while let == this_one:  #break out of loop when
+                    g = np.random.randint(0,3)
+                    this_one = types[g]
+                    #print 'after', this_one
+                let = this_one
+                #dig = str(int(dig) + 1)
+                let = [let, dig]
+                my_name = "".join(let)
+                element.name = my_name
+                self.unit_adjust(element.name)
         self.check_nums()
+        return
+
+    def unit_adjust(self, comp_name):
+        for element in self.netlist:
+            if element.name == comp_name:
+                component = element
+                break
+        name = component.name
+        if name[0] == 'R':
+            unit = 'k'
+        else:
+            unit = 'u'
+        val = component.value
+        # split 'val' into letters and digits
+        dig = []
+        let = []
+        for char in val:
+            if char.isdigit() or char == '.':
+                dig.append(char)
+            else:
+                let.append(char)
+        dig = "".join(dig)
+        val = [dig, unit]
+        val = "".join(val)
+        component.value = val
         return
 
     def serialize(self, comp_name):
@@ -116,9 +175,18 @@ class Circuit:
         self.netlist.append(new_comp)
         return
 
+    def max_node(self):
+        max_node = 0
+        for element in self.netlist:
+            if element.bottomnode > max_node:
+                max_node = element.bottomnode
+        return max_node
+
     def half_func(self):
         l = len(self.netlist)
         return self.netlist[0:l/2], self.netlist[l/2:l]
+
+    # TODO implement a function to delete a random component (not V1)
 
     def check_nums(self):
         for i in range(len(self.netlist)):
