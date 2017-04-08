@@ -26,35 +26,47 @@ def random_value(c_type):
         val = str(rootval), 'k'
     return "".join(val)
 
-
 def build_random():
     r = cir.Circuit()
-    i = 1
-    imax = 6
     comp0 = random_component(1)
     r.add_component_series(comp0, 1, random_value(comp0[0]))
-
-    while i < imax:
-        n = np.random.randint(0,3)
-        m = np.random.randint(0,2)
-        element = r.netlist[-1]
-        node = element.bottomnode
-        if node == str(0):
-            node = np.random.randint(1,3)
-        if n ==0 or n==1:
-            cname = random_component(i)
-            if m == 0:
-                r.add_component_series(cname, node,random_value(cname[0]))
-            if m == 1:
-                r.add_component_parallel(cname, node, random_value(cname[0]))
-        if n ==2:
-            if m ==0:
-                r.parallelize(element.name)
-            else:
-                r.serialize(element.name)
-        i +=1
-    r.check_nums()
+    comp1 = random_component(2)
+    r.add_component_parallel(comp1,2, random_value(comp1[0]))
+    comp2 = random_component(3)
+    r.add_component_series(comp2, 2, random_value(comp2[0]))
+    comp3 = random_component(4)
+    r.add_component_parallel(comp3, 3, random_value(comp3[0]))
     return r
+
+## ORIGINAL build_random() function:
+# def build_random():
+#     r = cir.Circuit()
+#     i = 1
+#     imax = 6
+#     comp0 = random_component(1)
+#     r.add_component_series(comp0, 1, random_value(comp0[0]))
+#
+#     while i < imax:
+#         n = np.random.randint(0,3)
+#         m = np.random.randint(0,2)
+#         element = r.netlist[-1]
+#         node = element.bottomnode
+#         if node == str(0):
+#             node = np.random.randint(1,3)
+#         if n ==0 or n==1:
+#             cname = random_component(i)
+#             if m == 0:
+#                 r.add_component_series(cname, node,random_value(cname[0]))
+#             if m == 1:
+#                 r.add_component_parallel(cname, node, random_value(cname[0]))
+#         if n ==2:
+#             if m ==0:
+#                 r.parallelize(element.name)
+#             else:
+#                 r.serialize(element.name)
+#         i +=1
+#     r.check_nums()
+#     return r
 
 def cross_funcs(a,b):
     [a1, a2] = a.half_func()

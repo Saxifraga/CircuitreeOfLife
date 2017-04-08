@@ -206,6 +206,15 @@ class Circuit:
                         net_index = j + 1
                     self.netlist[net_index].name = new_name
         return
+    #  THIS HASN'T BEEN CHECKED YET
+    # def delete_garbage(self):
+    #     for i in range(1,len(self.netlist)):
+    #         element = netlist[i]
+    #         top = element.topnode
+    #         bottom = element.bottom
+    #         if (top == 0 and bottom == 1) or (top == 1 and bottom ==0):
+    #             self.netlist.remove(element)
+    #     return
 
     def format_netlist(self,net):
         net = str(net)
