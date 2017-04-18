@@ -1,6 +1,5 @@
 import numpy as np
 import circuit_class_prototype as cir
-# import iterate_evaluate as ie
 import component_class_prototype as comp
 
 
@@ -18,8 +17,14 @@ def random_component(dig):
     component = "".join(bip)
     return component
 
+# trying to change this to include random exponent
+# we want 10^-3 = .001 to 10^3 = 1000--> .001 k = 1, 1000k = 1 M
+# .001 u = 1 pF, 1000 u = 1 mF
+# uhh so say gaussian distribution between -3 and 3
 def random_value(c_type):
     rootval = np.random.random()
+    #exponent = np.random.normal(-1.0, 0.5)
+    #rootval = rootval * 10**(exponent)
     if c_type == 'C' or c_type == 'L':
         val = str(rootval), 'u'
     else:

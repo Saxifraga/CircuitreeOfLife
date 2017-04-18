@@ -1,4 +1,6 @@
-# I want to create a class for building up circuits component by component
+# This is the last version that definitely WORKED
+# DO NOT EDIT
+
 import component_class_prototype as comp
 import copy
 import numpy as np
@@ -7,6 +9,8 @@ import numpy as np
 class Circuit:
 
     def __init__(self, list1 = None, list2 = None):
+
+
         self.source = comp.Component('V1', 1, 0, 'ac 1')
         self.netlist = []
         if list1 != None:
@@ -69,14 +73,9 @@ class Circuit:
                         let.append(char)
                 dig = float("".join(dig))
                 m = np.random.randint(0,2)
-                #exponent = np.random.normal(0.0, 0.8)
-                exponent = np.random.normal(-2.0, 0.5)
                 if m == 0:
-                    #dig += (np.random.random()*10**exponent)
-
                     dig += np.random.random()
                 elif m ==1:
-                    #dig = abs(dig - (np.random.random()*10**exponent))
                     dig = abs(dig - np.random.random())
                 dig = str(dig)
                 dig = [dig, let[0]]
@@ -192,7 +191,6 @@ class Circuit:
     # TODO implement a function to delete a random component (not V1)
 
     def check_nums(self):
-        self.delete_garbage()
         for i in range(len(self.netlist)):
             templist = copy.deepcopy(self.netlist)
             stat_element = templist.pop(i)
@@ -210,15 +208,15 @@ class Circuit:
                         net_index = j + 1
                     self.netlist[net_index].name = new_name
         return
-
-    def delete_garbage(self):
-        for i in range(1,len(self.netlist)):
-            element = self.netlist[i]
-            top = element.topnode
-            bottom = element.bottomnode
-            if (top == 0 and bottom == 1) or (top == 1 and bottom ==0):
-                self.netlist.remove(element)
-        return
+    #  THIS HASN'T BEEN CHECKED YET
+    # def delete_garbage(self):
+    #     for i in range(1,len(self.netlist)):
+    #         element = netlist[i]
+    #         top = element.topnode
+    #         bottom = element.bottom
+    #         if (top == 0 and bottom == 1) or (top == 1 and bottom ==0):
+    #             self.netlist.remove(element)
+    #     return
 
     def format_netlist(self,net):
         net = str(net)

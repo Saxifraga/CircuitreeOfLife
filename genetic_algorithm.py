@@ -1,9 +1,11 @@
+# DO NOT EDIT
+# This is the last version that worked
+
 import subprocess as sp
 import raw_reader as rr
 import numpy as np
 import matplotlib.pyplot as plt
-import circuit_class_prototype as cir
-from matplotlib.backends.backend_pdf import PdfPages
+import circuit_class as cir
 import crossover as cross
 import re
 import copy
@@ -24,7 +26,7 @@ def write_netlist(netlist):
     with open("highpass.cir", "w") as fo:
         #always put in the control loop
         fo.write('* High pass filter\n')
-        fo.write('.ac dec 50 1 1e5\n')
+        fo.write('.ac dec 10 1 1e5\n')
         fo.write('.control\n')
         fo.write('save all\n')
         fo.write('run\n')
@@ -101,14 +103,17 @@ def evaluate_solution(array, function, k):
 
     # for bpf above, important zones 100-200, 550-650
 
-
+    high_freq_weight = 10
+    low_freq_weight = 10
+    med_freq_weight = 1
+    for i in range(len(data)):
         #
-        # if i < 80 or i>99900: #bottom hundred, top thousand
-        #     fitness_val += 50*(func[i]-data[i])**2
-        # elif i >=80 and i<=670:
-        #     fitness_val += 30*(func[i]-data[i])**2
-        # else:
-        #     fitness_val += (func[i]-data[i])**2
+        if i < 100 or i>99900: #bottom hundred, top thousand
+            fitness_val += 25*(func[i]-data[i])**2
+        elif i >=100 and i<=650:
+            fitness_val += 40*(func[i]-data[i])**2
+        else:
+            fitness_val += (func[i]-data[i])**2
 
         # Something complicated I tried for 150-600 Hz BPF (not good)
         #
@@ -133,15 +138,6 @@ def evaluate_solution(array, function, k):
         #     fitness_val += high_freq_weight*(func[i]-data[i])**2
         # else:
         #     fitness_val += med_freq_weight*(func[i]-data[i])**2
-    # THE FOLLOWING WORKED ONE TIME SO LET'S IMMORTALIZE IT
-    for i in range(len(data)):
-        if i < 100 or i>99900: #bottom hundred, top thousand
-            fitness_val += 25*(func[i]-data[i])**2
-        elif i >=100 and i<=650:
-            fitness_val += 40*(func[i]-data[i])**2
-        else:
-            fitness_val += (func[i]-data[i])**2
-    # Uncomment below for HPF, LPF
     diff = max(data) - min(data)
     fitness_val = fitness_val/(diff)
     return fitness_val
@@ -168,7 +164,6 @@ def generation(gen):
         minIndex = gen_fit.index(min(gen_fit))
         gen_fit.pop(minIndex)
         bestest_boy = gen.pop(minIndex)
-        bestest_boy.delete_garbage()
         if i < 3:   #here's our elitism --- save the 3 best circuits
             next_gen.append(bestest_boy)
 
@@ -202,8 +197,6 @@ def generation(gen):
             pass
         else:
             [spawn1, spawn2] = cross.cross_funcs(next_gen[i], next_gen[i+1])
-            # spawn1.delete_garbage()
-            # spawn2.delete_garbage()
             next_gen.append(spawn1)
             next_gen.append(spawn2)
     # now mutate em
@@ -217,24 +210,27 @@ def generation(gen):
 
     return finals, best_fit
 
-# def build_hpf():
-#     hpf = cir.Circuit()
-#     node = hpf.add_component_series('R1', '1', '50k')
-#     hpf.add_component_parallel('C1', node, '10p')
-#     hpf.serialize('R1')
-#     # hpf = str(hpf)
-#     # hpf = hpf.split(',')
-#     # hpf = np.asarray(hpf)
-#
-#     return hpf
-#
-# def build_bpf():
-#     bpf = cir.Circuit()
-#     node = bpf.add_component_series('C1', '1', '.531u')
-#     bpf.add_component_parallel('R1', '2', '1k')
-#     bpf.add_component_series('R2', '2', '1k')
-#     bpf.add_component_parallel('C2', '3', '.212u')
-#     return bpf
+def build_hpf():
+    hpf = cir.Circuit()
+    node = hpf.add_component_series('R1', '1', '1k')
+    hpf.add_component_parallel('C1', node, '.1u')
+    #hpf.serialize('R1')
+    # hpf = str(hpf)
+    # hpf = hpf.split(',')
+    # hpf = np.asarray(hpf)
+
+    return hpf
+
+def build_bpf():
+    bpf = cir.Circuit()
+    # node = bpf.add_component_series('C1', '1', '.531u')
+    # bpf.add_component_parallel('R1', '2', '1k')
+    # bpf.add_component_series('R2', '2', '1k')
+    # bpf.add_component_parallel('C2', '3', '.212u')
+    node = bpf.add_component_series('C1', '1', '.1m')
+    bpf.add_component_series('L1', '2', '10u')
+    bpf.add_component_parallel('R1', '3', '100')
+    return bpf
 
 ''' maybe a good idea to build circuits up of subcircuits instead of directly of components?
 I can recycle the methods of the circuit class by using them to build subcircuits. '''
@@ -244,71 +240,59 @@ if __name__ == '__main__':
     # for i in range(4):
     #     print 'Circuit', i, '\n'
     #     print cross.build_random()
-    gen = []
-    number_of_generations = 50
-    for i in range(40):
-        gen.append(cross.build_random())
-###################################
-## For loop code
-    fits = []
-    for i in range(number_of_generations):
-        print 'GENERATION', i
-        [gen, best_fit] = generation(gen)   #this *should* work
-        fits.append(best_fit)
-####################################
-## While loop code
-    # best_fit = 1000
-    # num_gen = 0
-    # while best_fit > 100.0:
-    #     [gen, best_fit] = generation(gen)
-    #     num_gen +=1
-    #     print 'GENERATION', num_gen, 'fitness', best_fit
-########################################
-    cream_of_crop = gen #the last values you get out will be best
-    gen_fit = []
-    data = []
+    hpf = build_hpf()
+    bpf = build_bpf()
+    print bpf
+    [array, types] = iterate(spicepath, hpf.netlist)
 
-    for i in cream_of_crop:
-        [array, types] = iterate(spicepath, i.netlist)
-        if array == None:
-            fitness = 1000
-        else:
-            fitness = evaluate_solution(array, fitness_example, i.max_node())
-        data.append(array)
-        gen_fit.append(fitness)
-    #print 'fitnesses', gen_fit
-    minIndex = gen_fit.index(min(gen_fit))
-    fitness = gen_fit.pop(minIndex)
-    print 'fitness', fitness   #don't care about fitness score anymore
-    fits.append(fitness)
-    mySolution = cream_of_crop.pop(minIndex)
-    print mySolution
-    myData = data.pop(minIndex)
-    #print 'Data', myData
-    freqs = myData[:,0]
-    #TODO select node to plot in an intelligent way pls
-    node = int(i.max_node())
-
-    #############
-    with PdfPages('e90output.pdf') as pdf:
-        plt.plot(freqs, myData[:,node], freqs, fitness_example(freqs))
+    if array != None:
+        time = array[:,0]
+        #TODO select node to plot in an intelligent way pls
+        plt.plot(time, array[:,2])
         plt.xscale('log')
-        plt.title('Filter Output')
-        pdf.savefig()
-        plt.close()
-        plt.clf()
+        plt.show()
 
-        plt.plot(fits, 'ro')
-        plt.title('Fitness across generations')
-        plt.xlabel('Generation number')
-        plt.ylabel('Lowest fitness score')
-        pdf.savefig()
-        plt.close()
-
-    ################
-    # plt.plot(freqs, myData[:,node], freqs, fitness_example(freqs))
-    # plt.xscale('log')
-    # plt.show()
+#
+#     gen = []
+#     number_of_generations = 50
+#     for i in range(40):
+#         gen.append(cross.build_random())
+#     for i in range(number_of_generations):
+#         print 'GENERATION', i
+#         [gen, best_fit] = generation(gen)   #this *should* work
+# ####################################
+# ## While loop code
+#     # best_fit = 1000
+#     # num_gen = 0
+#     # while best_fit > 10.0:
+#     #     [gen, best_fit] = generation(gen)
+#     #     num_gen +=1
+#     #     print 'GENERATION', num_gen, 'fitness', best_fit
+# ########################################
+#     cream_of_crop = gen #the last values you get out will be best
+#     gen_fit = []
+#     data = []
+#     for i in cream_of_crop:
+#         [array, types] = iterate(spicepath, i.netlist)
+#         if array == None:
+#             fitness = 1000
+#         else:
+#
+#             fitness = evaluate_solution(array, fitness_example, i.max_node())
+#         data.append(array)
+#         gen_fit.append(fitness)
+#     print 'fitnesses', gen_fit
+#     minIndex = gen_fit.index(min(gen_fit))
+#     print 'fitness', gen_fit.pop(minIndex)   #don't care about fitness score anymore
+#     mySolution = cream_of_crop.pop(minIndex)
+#     print mySolution
+#     myData = data.pop(minIndex)
+#     freqs = myData[:,0]
+#     #TODO select node to plot in an intelligent way pls
+#     node = int(i.max_node())
+#     plt.plot(freqs, myData[:,node], freqs, fitness_example(freqs))
+#     plt.xscale('log')
+#     plt.show()
 
 ##################################
 
@@ -346,21 +330,14 @@ if __name__ == '__main__':
 ''' standard netlist for a HPF:
 * another example circuit
 * this one's a high pass filter
-
-
 .tran 10n 1u
-
 .control
 save all
 run
 write
 .endc
-
-
-
 V1 in 0 sin(0 1 1e6)
 R1 in out 50k
 C1 out 0 10p
-
 .END
 '''
