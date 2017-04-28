@@ -23,8 +23,8 @@ def random_component(dig):
 # uhh so say gaussian distribution between -3 and 3
 def random_value(c_type):
     rootval = np.random.random()
-    #exponent = np.random.normal(-1.0, 0.5)
-    #rootval = rootval * 10**(exponent)
+    # exponent = np.random.normal(0.0, 1.0)
+    # rootval = rootval * 10**(exponent)
     if c_type == 'C' or c_type == 'L':
         val = str(rootval), 'u'
     else:

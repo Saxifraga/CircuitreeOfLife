@@ -56,7 +56,7 @@ class Circuit:
             n = np.random.randint(0,20)
             # UNCOMMENT THIS AGAIN!!!!!
 
-            if n < 5:   #1 in 4 chance of numerical mutation
+            if n < 5 or n > 15:   #40% chance of numerical mutation
                 element = self.netlist[i]
                 val = element.value
                 # split 'val' into letters and digits
@@ -70,20 +70,20 @@ class Circuit:
                 dig = float("".join(dig))
                 m = np.random.randint(0,2)
                 #exponent = np.random.normal(0.0, 0.8)
-                exponent = np.random.normal(-2.0, 0.5)
+                exponent = np.random.normal(-1.0, 0.5)
                 if m == 0:
                     #dig += (np.random.random()*10**exponent)
 
-                    dig += np.random.random()
+                    dig += 1.5*np.random.random()
                 elif m ==1:
                     #dig = abs(dig - (np.random.random()*10**exponent))
-                    dig = abs(dig - np.random.random())
+                    dig = 1.5*abs(dig - np.random.random())
                 dig = str(dig)
                 dig = [dig, let[0]]
                 my_val = "".join(dig)
                 element.value = my_val
             # if this is messed up, can fix this way:
-            elif n == 11:   # 5% chance of topological mutation
+            elif n==15 and (len(self.netlist)<12):   # 5% chance of topological mutation
                 element = self.netlist[i]
                 m = np.random.randint(0,2)
                 if m == 0:
@@ -93,7 +93,7 @@ class Circuit:
 
             # don't forget to reset indentation and elif!!
 
-            elif n == 12 or n == 13 or n == 14:    # 3/20 chance of type mutation
+            elif n>4 and n<14:    # 3/20 chance of type mutation
                 element = self.netlist[i]
                 component_name = element.name
             # TODO mutate type (R L C)
@@ -122,6 +122,7 @@ class Circuit:
                 my_name = "".join(let)
                 element.name = my_name
                 self.unit_adjust(element.name)
+                self.check_nums()
         self.check_nums()
         return
 
@@ -183,6 +184,8 @@ class Circuit:
         for element in self.netlist:
             if element.bottomnode > max_node:
                 max_node = element.bottomnode
+            if element.topnode > max_node:
+                max_node = element.topnode
         return max_node
 
     def half_func(self):
