@@ -2,39 +2,70 @@ import numpy as np
 import circuit_class_prototype as cir
 import component_class_prototype as comp
 
+'''
+crossover.py written by Rachel Sassella for E90 project, Spring 2017
 
+Somewhat counter-intuitively, crossover.py only contains one function related to crossover.
+The bulk of the functions in this module are for randomly generating circuits for the first
+generation of the genetic algorithm. Crossover is performed in cross_funcs(), which takes two
+netlists and recombines them to make two offspring circuits.'''
 
+''' cross_funcs takes two circuit objects as inputs, uses the circuit method half_func()
+to split the netlists in half, then instantiates the crossed-over offspring as circuits.
+Finally, it uses the check_nums function to ensure that each component is uniquely numbered. '''
+def cross_funcs(a,b):
+    [a1, a2] = a.half_func()    #uses circuit method to split netlist in half
+    [b1, b2] = b.half_func()
+    new_a = cir.Circuit(a1,b2)
+    new_b = cir.Circuit(b1, a2)
+    new_a.check_nums()
+    new_b.check_nums()
+    #print 'the baby\n', new_a
+    return new_a, new_b
+
+'''random_component randomly generates the name of a resistor, capacitor, or inductor for
+building up random circuits. Because components must be uniquely numbered, random_component()
+takes a single numerical argument. It returns the name of the component (ex R2, C17, etc)'''
 def random_component(dig):
-    n = np.random.randint(0,3)
-    dig = str(dig)
+    n = np.random.randint(0,3)  # equal chance for each component type
+    dig = str(dig)  #'dig' refers to the number that will follow the letter in the component name
     if n == 0:
-        c = 'R'
+        c = 'R'     #generates a resistor
     if n == 1:
-        c = 'C'
+        c = 'C'     #generates a capacitor
     if n ==2 :
-        c = 'L'
+        c = 'L'     #generates an inductor
     bip = c, dig
-    component = "".join(bip)
+    component = "".join(bip)    #gives full name as string
     return component
 
-# trying to change this to include random exponent
-# we want 10^-3 = .001 to 10^3 = 1000--> .001 k = 1, 1000k = 1 M
-# .001 u = 1 pF, 1000 u = 1 mF
-# uhh so say gaussian distribution between -3 and 3
+
+'''random_value() takes a component type and returns a value for that component, with an
+appropriate order of magnitude abbreviation. The values are randomly generated between
+0 and 1. I also tried making the order of magnitude vary by implementing a randomly generated
+exponent (normal distribution), but this affected convergence times. It can be uncommented
+if the user is feeling brave. There is corresponding code in the value mutation section of
+circuit_class.py'''
+
 def random_value(c_type):
     rootval = np.random.random()
+    #UNCOMMENT THE FOLLOWING if you want greater variety in component values
     # exponent = np.random.normal(0.0, 1.0)
     # rootval = rootval * 10**(exponent)
     if c_type == 'C' or c_type == 'L':
-        val = str(rootval), 'u'
+        val = str(rootval), 'u'         # u is for micro-henry or mirco-farad
     else:
-        val = str(rootval), 'k'
+        val = str(rootval), 'k'         # k is for kilo-ohm
     return "".join(val)
 
+''' build_random() is the second iteration of the function to build circuits up from random
+components. The original version is commented below. This version uses a four-component,
+two-rung ladder topology hard-coded in. The original used randomly generated topology, too.
+'''
 def build_random():
-    r = cir.Circuit()
-    comp0 = random_component(1)
-    r.add_component_series(comp0, 1, random_value(comp0[0]))
+    r = cir.Circuit()   # instantiate a circuit object r (only contains voltage source rn)
+    comp0 = random_component(1) #randomly generate component
+    r.add_component_series(comp0, 1, random_value(comp0[0]))    #add in series w voltage source
     comp1 = random_component(2)
     r.add_component_parallel(comp1,2, random_value(comp1[0]))
     comp2 = random_component(3)
@@ -43,7 +74,7 @@ def build_random():
     r.add_component_parallel(comp3, 3, random_value(comp3[0]))
     return r
 
-## ORIGINAL build_random() function:
+'''the ORIGINAL build_random() function:'''
 # def build_random():
 #     r = cir.Circuit()
 #     i = 1
@@ -72,49 +103,3 @@ def build_random():
 #         i +=1
 #     r.check_nums()
 #     return r
-
-def cross_funcs(a,b):
-    [a1, a2] = a.half_func()
-    [b1, b2] = b.half_func()
-    new_a = cir.Circuit(a1,b2)
-    new_b = cir.Circuit(b1, a2)
-    new_a.check_nums()
-    new_b.check_nums()
-    #print 'the baby\n', new_a
-    return new_a, new_b
-
-
-# problem: if I format the netlist first, then I can't
-
-# def test_func():
-#     n = cir.Circuit()
-#     n.add_component_series('R1', '1', '1k')
-#     n.add_component_ser ies('R1', '2', '1k')
-#     n.add_component_series('R1', '3', '1k')
-#     n.add_component_series('R1', '4', '1k')
-#     # n.add_component_series('R1', '5', '1k')
-#     n.check_nums()
-#     n = n.format_netlist(n)
-#     return
-
-
-
-# def formats_netlist(net):
-#     net = str(net)
-#     net = net.split(',')
-#     net = np.asarray(net)
-#     return net
-
-# r1 = build_random()
-# r2 = build_random()
-#
-#
-# r=cross_funcs(r1, r2)
-# r.check_nums()
-# print r.format_netlist(r)
-
-
-# def build_net_2():
-#     net2 = cir.Circuit()
-#     node = net2.add_component_series('L1', )
-#
