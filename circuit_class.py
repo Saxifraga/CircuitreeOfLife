@@ -1,6 +1,4 @@
-# This is the last version that definitely WORKED
-# DO NOT EDIT
-
+# I want to create a class for building up circuits component by component
 import component_class_prototype as comp
 import copy
 import numpy as np
@@ -9,8 +7,6 @@ import numpy as np
 class Circuit:
 
     def __init__(self, list1 = None, list2 = None):
-
-
         self.source = comp.Component('V1', 1, 0, 'ac 1')
         self.netlist = []
         if list1 != None:
@@ -60,7 +56,7 @@ class Circuit:
             n = np.random.randint(0,20)
             # UNCOMMENT THIS AGAIN!!!!!
 
-            if n < 5:   #1 in 4 chance of numerical mutation
+            if n < 5 or n > 15:   #40% chance of numerical mutation
                 element = self.netlist[i]
                 val = element.value
                 # split 'val' into letters and digits
@@ -73,16 +69,21 @@ class Circuit:
                         let.append(char)
                 dig = float("".join(dig))
                 m = np.random.randint(0,2)
+                #exponent = np.random.normal(0.0, 0.8)
+                exponent = np.random.normal(-1.0, 0.5)
                 if m == 0:
-                    dig += np.random.random()
+                    #dig += (np.random.random()*10**exponent)
+
+                    dig += 1.5*np.random.random()
                 elif m ==1:
-                    dig = abs(dig - np.random.random())
+                    #dig = abs(dig - (np.random.random()*10**exponent))
+                    dig = 1.5*abs(dig - np.random.random())
                 dig = str(dig)
                 dig = [dig, let[0]]
                 my_val = "".join(dig)
                 element.value = my_val
             # if this is messed up, can fix this way:
-            elif n == 11:   # 5% chance of topological mutation
+            elif n==15 and (len(self.netlist)<12):   # 5% chance of topological mutation
                 element = self.netlist[i]
                 m = np.random.randint(0,2)
                 if m == 0:
@@ -92,7 +93,7 @@ class Circuit:
 
             # don't forget to reset indentation and elif!!
 
-            elif n == 12 or n == 13 or n == 14:    # 3/20 chance of type mutation
+            elif n>4 and n<14:    # 3/20 chance of type mutation
                 element = self.netlist[i]
                 component_name = element.name
             # TODO mutate type (R L C)
@@ -121,6 +122,7 @@ class Circuit:
                 my_name = "".join(let)
                 element.name = my_name
                 self.unit_adjust(element.name)
+                self.check_nums()
         self.check_nums()
         return
 
@@ -182,6 +184,8 @@ class Circuit:
         for element in self.netlist:
             if element.bottomnode > max_node:
                 max_node = element.bottomnode
+            if element.topnode > max_node:
+                max_node = element.topnode
         return max_node
 
     def half_func(self):
@@ -191,6 +195,7 @@ class Circuit:
     # TODO implement a function to delete a random component (not V1)
 
     def check_nums(self):
+        self.delete_garbage()
         for i in range(len(self.netlist)):
             templist = copy.deepcopy(self.netlist)
             stat_element = templist.pop(i)
@@ -208,15 +213,15 @@ class Circuit:
                         net_index = j + 1
                     self.netlist[net_index].name = new_name
         return
-    #  THIS HASN'T BEEN CHECKED YET
-    # def delete_garbage(self):
-    #     for i in range(1,len(self.netlist)):
-    #         element = netlist[i]
-    #         top = element.topnode
-    #         bottom = element.bottom
-    #         if (top == 0 and bottom == 1) or (top == 1 and bottom ==0):
-    #             self.netlist.remove(element)
-    #     return
+
+    def delete_garbage(self):
+        for i in range(1,len(self.netlist)):
+            element = self.netlist[i]
+            top = element.topnode
+            bottom = element.bottomnode
+            if (top == 0 and bottom == 1) or (top == 1 and bottom ==0):
+                self.netlist.remove(element)
+        return
 
     def format_netlist(self,net):
         net = str(net)

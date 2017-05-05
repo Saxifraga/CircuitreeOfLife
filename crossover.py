@@ -86,16 +86,16 @@ def cross_funcs(a,b):
 
 # problem: if I format the netlist first, then I can't
 
-def test_func():
-    n = cir.Circuit()
-    n.add_component_series('R1', '1', '1k')
-    n.add_component_series('R1', '2', '1k')
-    n.add_component_series('R1', '3', '1k')
-    n.add_component_series('R1', '4', '1k')
-    # n.add_component_series('R1', '5', '1k')
-    n.check_nums()
-    n = n.format_netlist(n)
-    return
+# def test_func():
+#     n = cir.Circuit()
+#     n.add_component_series('R1', '1', '1k')
+#     n.add_component_ser ies('R1', '2', '1k')
+#     n.add_component_series('R1', '3', '1k')
+#     n.add_component_series('R1', '4', '1k')
+#     # n.add_component_series('R1', '5', '1k')
+#     n.check_nums()
+#     n = n.format_netlist(n)
+#     return
 
 
 
