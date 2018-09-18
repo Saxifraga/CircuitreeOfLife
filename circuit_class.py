@@ -6,7 +6,7 @@ to be easy to change and manipulate. Methods in this class are mostly related to
 individual components.
 '''
 
-import component_class_prototype as comp
+import component_class as comp
 import copy
 import numpy as np
 '''A circuit is either initialized with a voltage source and no other netlist components,

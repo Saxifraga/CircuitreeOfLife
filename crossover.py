@@ -1,6 +1,6 @@
 import numpy as np
-import circuit_class_prototype as cir
-import component_class_prototype as comp
+import circuit_class as cir
+import component_class as comp
 
 '''
 crossover.py written by Rachel Sassella for E90 project, Spring 2017
