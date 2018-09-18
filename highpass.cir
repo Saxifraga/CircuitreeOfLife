@@ -1,11 +1,14 @@
-* another example circuit
-* this one's a high pass filter
-
-Vsource vin AC sin(0 1m 10k 0 0)
-C1 vin vout .23u
-R1 vout 0 1k
-
+* High pass filter
+.ac dec 10 1 1e5
 .control
-tran .5s 1s
+save all
+run
+write
 .endc
-.end
+
+V1 1 0 ac 1
+C1 1 2 0.0952335570127u
+R2 2 0 0.495327116872k
+C3 2 3 0.878964408256u
+C4 3 0 0.884476082001u
+.END

@@ -1,3 +1,5 @@
+'''raw_reader.py is the work of user snmishra on the blog Grok Circuits (grokcircuits.com).
+It was tweaked by Rachel Sassella for use in interpreting Ngspice-produced rawfiles.'''
 from __future__ import division
 import numpy as np
 BSIZE_SP = 512 # Max size of a line of data; we don't want to read the
@@ -28,10 +30,13 @@ def rawread(fname):
     # Binary:
 
     # if there isn't fname, I need to return something else
+    ############
+    # this snippet of code is the only alteration by R. Sassella to the original raw_reader.py
     try:
         fp = open(fname, 'rb')
     except:
         return (None, None)
+    ##############
     plot = {}
     count = 0
     arrs = []
