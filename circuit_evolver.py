@@ -1,3 +1,4 @@
+
 '''circuit_evolver written by Rachel Sassella for E90 senior design project, Spring 2017
 
 This module writes .cir files for Ngspice, interfaces with Ngspice to run simulations,
@@ -266,7 +267,7 @@ def generation(gen):
 if __name__ == '__main__':
     gen = []
     flag = False
-    number_of_generations = 100
+    number_of_generations = 4
     #randomly generate the first population of circuits
     for i in range(80):
         gen.append(cross.build_random())
